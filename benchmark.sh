@@ -5,11 +5,11 @@ set -euo pipefail
 # Runs the same multi-turn task with and without the plugin,
 # then compares token usage from session exports.
 
-PLUGIN_DIR="/Users/aleksandrapoturalska/opencode-strip-reasoning"
-CONFIG_FILE="/Users/aleksandrapoturalska/.config/opencode/opencode.json"
-RESULTS_DIR="/tmp/opencode-benchmark-results"
-MODEL="nebul/zai-org/GLM-5-FP8"
-AGENT="build"
+PLUGIN_DIR="${PLUGIN_DIR:-$(cd "$(dirname "$0")" && pwd)}"
+CONFIG_FILE="${CONFIG_FILE:-$HOME/.config/opencode/opencode.json}"
+RESULTS_DIR="${RESULTS_DIR:-/tmp/opencode-benchmark-results}"
+MODEL="${MODEL:-nebul/zai-org/GLM-5-FP8}"
+AGENT="${AGENT:-build}"
 
 # Multi-turn benchmark prompts (3 turns to surface reasoning accumulation)
 PROMPT_1="Explain how JavaScript closures work and give a practical example of a counter factory function."
