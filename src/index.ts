@@ -1,6 +1,6 @@
 import type { Plugin, Hooks, PluginOptions } from "@opencode-ai/plugin";
 import { tool } from "@opencode-ai/plugin";
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -22,9 +22,21 @@ const sessionStats = new Map<string, {
   }[];
 }>();
 
+let logEnabled = true;
+const LOG_MAX_BYTES = 5 * 1024 * 1024;
+
 function log(entry: Record<string, unknown>) {
+  if (!logEnabled) return;
   const line = JSON.stringify({ ts: Date.now(), ...entry }) + "\n";
   try {
+    try {
+      const size = statSync(LOG_PATH).size;
+      if (size > LOG_MAX_BYTES) {
+        writeFileSync(LOG_PATH, "");
+      }
+    } catch {
+      // file doesn't exist yet, nothing to rotate
+    }
     appendFileSync(LOG_PATH, line);
   } catch {}
 }
@@ -64,6 +76,7 @@ function formatStatsReport(sessionID: string): string {
         try {
           const entry = JSON.parse(line);
           if (entry.event !== "messages.transform") continue;
+          if (entry.sessionID !== sessionID) continue;
           if (((entry.reasoningCharsStripped as number) ?? 0) === 0) continue;
           calls++;
           callsWithReasoning++;
@@ -116,9 +129,22 @@ function formatStatsReport(sessionID: string): string {
   return lines.join("\n");
 }
 
+const VALID_MODES: Mode[] = ["strip", "summarize", "keep-last"];
+
 const plugin: Plugin = async (_input, options) => {
-  const mode: Mode = (options?.mode as Mode) ?? "strip";
-  const keepCount: number = (options?.keepCount as number) ?? 0;
+  let mode: Mode = (options?.mode as Mode) ?? "strip";
+  let keepCount: number = (options?.keepCount as number) ?? 0;
+
+  if (!VALID_MODES.includes(mode)) {
+    console.error(`opencode-strip-reasoning: invalid mode "${String(mode)}", falling back to "strip". valid modes: ${VALID_MODES.join(", ")}`);
+    mode = "strip";
+  }
+  if (!Number.isInteger(keepCount) || keepCount < 0) {
+    console.error(`opencode-strip-reasoning: invalid keepCount "${String(keepCount)}", falling back to 0.`);
+    keepCount = 0;
+  }
+  logEnabled = (options?.log as boolean) ?? true;
+  console.error(`opencode-strip-reasoning active: mode=${mode} keepCount=${keepCount} log=${logEnabled}`);
 
   const hooks: Hooks = {
     "experimental.chat.messages.transform": async (_input, output) => {
@@ -230,6 +256,7 @@ const plugin: Plugin = async (_input, options) => {
 
       log({
         event: "messages.transform",
+        sessionID,
         mode,
         before,
         after,
