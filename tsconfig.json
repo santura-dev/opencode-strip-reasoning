@@ -9,7 +9,10 @@
     "declaration": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "jsx": "preserve",
+    "jsxImportSource": "@opentui/solid",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"]
 }

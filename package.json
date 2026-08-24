@@ -19,13 +19,41 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsup",
+    "test": "vitest run",
+    "lint": "oxlint src/ test/",
+    "format": "prettier --write src/ test/",
+    "format:check": "prettier --check src/ test/"
   },
   "dependencies": {
     "@opencode-ai/plugin": "^1.4.3"
   },
   "devDependencies": {
+    "@opentui/core": "^0.5.10",
+    "@opentui/solid": "^0.5.10",
     "@types/node": "^25.9.3",
-    "typescript": "^6.0.3"
+    "oxlint": "^1.81.0",
+    "prettier": "^3.9.6",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/santura-dev/opencode-strip-reasoning.git"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "llm",
+    "reasoning",
+    "context-window",
+    "mixture-of-experts"
+  ],
+  "engines": {
+    "node": ">=20"
   }
 }
