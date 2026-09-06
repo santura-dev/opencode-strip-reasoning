@@ -26,6 +26,7 @@ const sessionStats = new Map<
 >()
 
 let logEnabled = true
+let debugEnabled = false
 const LOG_MAX_BYTES = 5 * 1024 * 1024
 
 function log(entry: Record<string, unknown>) {
@@ -165,9 +166,12 @@ const plugin: Plugin = async (_input, options) => {
     keepCount = 0
   }
   logEnabled = (options?.log as boolean) ?? true
-  console.error(
-    `opencode-strip-reasoning active: mode=${mode} keepCount=${keepCount} log=${logEnabled}`,
-  )
+  debugEnabled = (options?.debug as boolean) ?? false
+  if (debugEnabled) {
+    console.error(
+      `opencode-strip-reasoning active: mode=${mode} keepCount=${keepCount} log=${logEnabled}`,
+    )
+  }
 
   const hooks: Hooks = {
     "experimental.chat.messages.transform": async (_input, output) => {
